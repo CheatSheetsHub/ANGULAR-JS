@@ -511,4 +511,521 @@ $http.get(‘/api/data’).then(function(result){
 });
   
   
+## INTERMEDIATE - ADVANCED 
+# Manage Dependencies
+ Use a package management tool like Bower (bower.io/) to
+manage and update third-party web dependencies in your
+project. It is as simple as installing bower using npm install
+bower; then listing all the dependent libraries and versions in a
+Bower package definition file called bowerconfig.json and lastly
+run bower install or bower update in your project to get the
+latest versions of any web dependencies in your project.
 
+ # Using AngularJS functions
+ Wherever possible, use AngularJS versions of JavaScript
+functionality. So instead of setInterval, use the $interval
+service. Similarly instead of setTimeout use the $timeout
+service. It becomes easier to mock them or write unit tests . Also
+make sure to clean it up when you have no use for it. Use the
+$destroy event to do so:
+$scope.$on(“$destroy”, function (event) {
+ $timeout.cancel(timerobj);
+});
+ 
+# Services
+ If you need to share state across your application, or need a
+solution for data storage or cache, think of Services. Services
+are singletons and can be used by other components such as
+directives, controllers, filters and even other services. Services
+do not have a scope of their own, so it is permissible to add
+eventlisteners in Services using $rootScope.
+ 
+# Deferred and Promise
+ The $q service provides deferred objects/promises.
+
+ • $q.all([array of promises]) - creates a Deferred object that is
+resolved when all of the input promises in the specified array
+are resolved in future
+
+ • $q.defer() - creates a deferred object with a promise property
+that can be passed around applications, especially in scenarios
+where we are integrating with a 3rd-party library
+ 
+ • $q.reject(reason) - Creates a promise that is resolved as
+rejected with the specified reason. The return value ensures
+that the promise continues to the next error handler instead of
+a success handler.
+
+ • deferredObject.resolve - Resolves the derived promise with
+the value
+
+ • deferredObject.reject - Rejects the derived promise with the
+reason and triggers the failure handler in the promise.
+ 
+# Manipulating $scope
+ Do not make changes to the $scope from the View. Instead do it
+using a Controller. Let’s see an example. The following piece of
+code controls the state of the dialog property directly from the
+ng-click directive.
+<div>
+ <button ng-click=”response = false”>Close Dialog
+ </button>
+</div>
+Instead we can do this in a Controller and let it control the
+state of the dialog as shown here:
+<div>
+ <button ng-click=”getResponse()”>Close Dialog
+ </button>
+</div>
+In dialog-controller.js file, use the following code:
+dialog.controller(“diagCtrl”, function ($scope) {
+ $scope.response = false;
+ $scope.getResponse = function () {
+ $scope.response = false;
+ }
+});
+This reduces the coupling between the view and controller
+ 
+# Prototypal Inheritance
+ Always have a ‘.’ in your ng-models which insures
+prototypal inheritance. So instead of
+<input type=”text” ng-model=”someprop”>
+use
+<input type=”text” ng-model=”someobj.someprop”>
+ 
+# Event Aggregator:
+ $scope includes support for event aggregation. It is possible to
+publish and subscribe events inside an AngularJS application
+without need of a third party library. Following methods are
+used for event aggregation:
+
+ • $broadcast(eventName, eventObject): Publishes an event
+to the current scope and to all children scopes of the current
+scope
+
+ • $emit(eventName, eventObject): Publishes an event to the
+current scope and to all parent scopes of the current scope
+
+ • $on(eventName, eventHandler): Listens to an event and
+executes logic inside eventHandler when the event occurs.
+ 
+# $resource
+$resource is a higher level service that wraps $http to interact
+with RESTful APIs. It returns a class object that can perform
+a default set of actions (get (GET), save (POST), query (GET),
+remove(DELETE), delete (DELETE)). We can add more actions to
+the object obtained.
+//A factory using $resource
+myModule.factory(‘Student’, function($resource){
+ return $resource(‘/api/students’, null, {
+ change: {method: ‘PUT’}
+ });
+});
+ 
+The above operation returns a $resource object that has all
+default operations and the change method that performs a PUT
+operation.
+ 
+# $timeout and $interval
+$timeout is used to execute a piece of code after certain
+interval of time. The $timeout function takes three
+parameters: function to execute after time lapse, time to wait
+in milliseconds, a flag field indicating whether to perform
+$scope.$apply after the function execution.
+$timeout(function () {
+ //Logic to execute
+}, 1000, true);
+ 
+$interval is used to keep calling a piece of code repeatedly after certain interval. If count is not passed, it defaults to 0, which
+causes the call to happen indefinitely.
+$interval(function () {
+ //Logic to execute
+}, 1000, 10, true);
+ 
+# jqLite and jQuery
+ AngularJS uses a lighter version of jQuery called jqLite to
+perform DOM manipulations. The element we receive in
+compile and link functions of directive are jqLite objects. It
+provides most of the necessary operations of jQuery. Following
+snippet shows obtaining a jqLite object for all divs on a page
+using selector:
+var divJqliteObject = angular.element(‘div’);
+But, if jQuery library is referred on the page before referring
+AngularJS, then Angular uses jQuery and all element objects are
+created as jQuery objects.
+If a jQuery plugin library is referred on the page before
+referring AngularJS, then the element objects get capabilities of
+the extended features that the plugins bring in.
+ 
+# ngCookie
+ ngCookie is a module from the AngularJS team that wraps
+cookies and provides an easier way to deal with cookies in an
+AngularJS application. It has two services:
+i. $cookieStore: Provides a key-value pair kind of interface to
+talk to the cookies in the browser. It has methods to get value
+of a stored cookie, set value to a cookie and remove a cookie.
+The data is automatically serialized/de-serialized to/from JSON.
+ii. $cookies: An object representing the cookies. Can be used
+directly to get or set values to cookies
+ 
+# Unit testing:
+ AngularJS is built with unit testing in mind. Every component
+defined in Angular is testable. Dependency injection is the key
+factor behind it. Take any kind of component in Angular, it can’t
+be written without getting some of the external componentsinjected in. This gives freedom to programmers to pass any
+object of their choice instead of the actual component object
+while writing tests. The only thing to be taken care is to create
+an object with the same shim as the component.
+AngularJS code can be unit tested using any JavaScript Unit
+Testing framework like QUnit, Jasmine, Mocha or any other
+framework. Jasmine is the most widely used testing framework
+with Angular. Tests can be run anywhere, in browser or even in
+console using Karma test runner.
+The main difference between application code and unit tests
+is, application code is backed by the framework and browser,
+whereas unit tests are totally under our control. So, wherever
+we get objects automatically injected or created by AngularJS,
+these objects are not available in unit tests. They have to be
+created manually.
+ 
+# Bootstrapping a unit test:
+ Just like the case of Angular application, we need to bootstrap
+a module in unit tests to load the module. As the module
+has to be loaded fresh before any test runs, we load module
+while setting up the tests. In Jasmine tests, setup is doe using
+beforeEach block.
+beforeEach(function(){
+ module(‘myModule’);
+});
+ 
+# Creating $scope in unit tests:
+ $scope is a special injectable in AngularJS. It is unlike other
+objects as it is not already created to pass into a component
+when asked. A $scope can be injected only inside controllers
+and for every request of $scope, a new $scope object is created
+that is inherited from $rootScope. Framework takes care of
+creating the scope when the application is executed. We have
+to do it manually to get a $scope object in tests. Following
+snippet demonstrates creation of $scope:
+ 
+var scope;
+beforeEach(inject(function ($rootScope) {
+ scope = $rootScope.$new();
+}));
+ 
+# Testing controllers: 
+ In an AngularJS application, we generally don’t need to create
+an object of a controller manually. It gets created whenever
+a view loads or the template containing an ng-controller
+directive loads. To create it manually, we need to use the
+$controller service. To test the behavior of controller, we need to
+manually create object of the controller.
+inject(function($controller){
+ var controller = $controller(‘myController’,
+ { $scope: scope, service: serviceMock });
+});
+As we see, arguments to the controller are passed using a
+JavaScript object literal. They would be mapped to right objects
+according to names of the services. After this, the scope would
+have all properties and methods that are set in the controller.
+We can invoke them to test their behavior.
+it(‘should return 10’, function(){
+ var val = scope.getValue();
+ expect(val).toEqual(10);
+});
+ 
+# Testing services:
+ 
+ Getting object of a service is easy as it is directly available to
+the inject() method.
+var serviceObj;
+beforeEach(inject(function (myService) {
+ serviceObj = service;
+}));
+ 
+Now any public method exposed from the service can be called
+and the result can be tested using assertions.
+it(‘should get some data’, function(){
+ var data = serviceObj.getCustomers();
+ expect(data).not.toBe(null);
+ expect(data).not.toBe(undefined);
+});
+ 
+ 
+# ng-controller outside ng-view:
+Though controllers are used with views in general, it doesn’t
+mean that they can’t be used outside a view. A controller can
+be made responsible to load menu items, show toast messages, update user when a background task is completed or any such
+thing that doesn’t depend on the view loaded inside ng-view.
+<div ng-app=”myModule”>
+ <div ng-controller=”menuController”>
+ <!-- Mark-up displaying Menu -->
+ </div>
+ <div ng-view></div>
+</div>
+ 
+# Mocking services:
+ Mocking is one of the most crucial things in unit testing. It
+helps in keeping the system under test isolated from any
+dependency that it has. It is very common to have a component
+to depend on a service to get a piece of work done. This work
+has to be suppressed in unit tests and replaced with a mock or
+stub. Following snippet mocks a service:
+Say, we have following service:
+app.service(‘customersSvc’, function(){
+ this.getCustomers = function(){
+ //get customers and return
+ };
+ this.getCustomer = function(id){
+ //get the customer and return
+ };
+ this.addCustomer = function(customer){
+ //add the customer
+ };
+});
+To mock this service, we need to create a simple object with
+three mocks with the names same as the ones in the service
+ and ask Angular’s injector to return the object whenever the
+service is requested.
+ 
+var mockCustomersSvc;
+beforEach(function(){
+ mockCustomerService = {
+ getCustomers: jasmine.createSpy(‘getCustomers’),
+ getCustomer: jasmine.createSpy(‘getCustomer’),
+ addCustomers: jasmine.createSpy(‘addCustomer’)
+ };
+ module(function($provide){
+ $provide.value(‘customersSvc’, mockCustomersSvc);
+ });
+});
+ 
+# ngMock
+The ngMock module provides useful tools for unit testing
+AngularJS components such as controllers, filters, directives and
+services.
+ 
+
+ • The module function of ngMock loads the module you want
+to test and it’s inject method resolves the dependencies on the
+service to be tested
+
+ • We can mock the backend and test components depending
+on the $http service using the $httpBackend service in ngMocks
+
+ • We can mock timeouts and intervals using $interval and
+$timeout in ngMocks
+
+ • The $log service can be used for test logging
+
+ • The $filter service allows us to test filters
+
+ • Directives are complex to test. Use the $compile service and
+jqLite to test directives
+ 
+ # ng-class:
+ ng-class can be used in multiple ways to dynamically apply
+one or more CSS classes to an HTML element. One of the very
+good features is, it supports some simple logical operators too.
+Following list shows different ways of using ng-class:
+i. <div ng-class=”dynamicClass”>some text</div>
+ Assigns value of dynamicClass from scope to the CSS class. It is
+two-way bound, i.e. if value of dynamicClass changes, the style
+applied on the div also changes.
+ii. <div class=”[class1, class2, class3]”>some text</div>
+All classes mentioned in the array are applied
+iii. <div class=”{‘’my-class-1’’:value1, ‘’my-class2’’:value2}”>some text</div>
+my-class-1 is applied when value1 is assigned with a truthy
+value (other than false, empty string, undefined or null)
+iv. <div ng-class=”value ? ‘my-class-1’:’my-class2’”>some text</div>
+Value of class applied is based on result of the ternary operator.
+v. <div ng-class=”{true: ‘firstclass’}[applyfirstclass] ||
+{true:’secondclass’}[applysecondclass]”></div>
+Here, applyFirstClass and applySecondClass are data bound
+variables. The expression applies firstClass if applyFirstClass is
+true. It applies secondClass only if applySecondClass is true and
+applyFirstClass is false.
+ 
+# Resolve blocks in routing:
+ Resolve blocks are used to load data before a route is resolved.
+They can be used to validate authenticity of the user, load
+initial data to be rendered on the view or to establish a realtime connection (e.g. Web socket connection) as it would be in
+use by the view. View is rendered only if all the resolve blocks
+of the view are resolved. Otherwise, the route is cancelled and
+the user is navigated to the previous view.
+$routeProvider.when(‘/details’, {
+ templateUrl: ‘detailsView.html’,
+ controller: ‘detailsController’,
+ resolve: {
+ loadData: function (dataSvc, $q) {
+ var deferred = $q.defer;
+ dataSvc.getDetails(10).then(
+ function (data) { deferred.reslve(data);},
+ function () { deferred.reject();});
+ return deferred.promise;
+ }
+ }});
+ In the above snippet, the route won’t be resolved if the promise
+is rejected. Resolve block can be injected into the controller and
+data resolved from the resolve block can be accessed using the
+injected object.
+ 
+# $compile
+ Used to compile templates after the compilation phase.
+$compile is generally used in link function of directives
+or services. But, it should be used with caution as manual
+compilation is an expensive operation.
+myModule.directive(‘sampleDirective’, function(){
+ return {
+ link: function(scope, elem, attrs){
+ var compiled = $compile(‘<div>{{person.name}}
+ </div>’)(scope);
+ elem.html(compiled);
+ }
+ };
+});
+ 
+# $parse
+ $parse is used to transform plain text into expression. The
+expression can be evaluated against any object context to
+obtain the value corresponding to the object. Very common
+usage of parse is inside directives to parse the text received
+from an attribute and evaluate it against scope. The expression
+also can be used to add a watcher.
+myModule.directive(‘sampleDirective’, function($parse){
+ return function(scope, elem, attrs){
+ var expression = $parse(attrs.tempValue);
+
+ var value = expression(scope);
+ scope.$watch(expression, function(newVal, oldVal){
+ //Logic to be performed
+ });
+ };
+});
+ 
+# Route change events:
+ When a user navigates from one page to another, AngularJS
+broadcasts events at different phases. One can listen to these
+events and take appropriate action like verifying login status,
+requesting for data needed for the page or even to count the
+number of hits on a view. Following are the events raised:
+ 
+ • $routeChangeStart
+• $routeChangeSuccess
+• $routeChangeError
+• $routeUpdate
+ 
+# Decorating
+ It is possible to modify the behavior or extend the functionality
+of any object in AngularJS through decoration. Decoration is
+applied in AngularJS using $provide provider. It has to be done
+in config block. Following example adds a method to the value:
+angular.module(‘myModule’,[])
+ .config(function($provide) {
+ $provide.decorator(‘someValue’, function($delegate)
+ {
+ $delegate.secondFn = function(){
+ console.log(“Second Function”);
+ };
+
+ return $delegate;
+ });
+ })
+ .value(‘someValue’,{
+ firstFn: function(){console.log(“First Function”);}
+ });
+Note: Constants cannot be decorated
+ 
+# Exception handling
+ All unhandled exceptions in an AngularJS application are
+passed to a service $exceptionHandler, which logs the
+error message in the browser’s console. In large business
+applications, you may want to log the error details on the
+server by calling an API. This can be done by decorating the
+$exceptionHandler service.
+myApp.config(function ($provide) {
+ $provide.decorator(‘$exceptionHandler’, [‘$log’,
+ ‘$http’, ‘$delegate’,
+ function ($log, $http, $delegate) {
+ return function (exception, cause) {
+ $log.debug(‘Modified exception handler’);
+ $http.post(‘/api/clientExceptionLogger’,
+exception);
+ $delegate(exception, cause);
+ };
+ }
+ ]);
+});
+ 
+# HTTP Interceptors
+ Any HTTP request sent through $http service can be
+intercepted to perform certain operation at a given state. The
+state may be one of the following: before sending request, on
+request error, after receiving response and on response error.
+Interceptors are generally used to check authenticity of the
+request before sending to the server or to displaying some kind
+of wait indicator to the user when the user has to wait for the
+data to arrive. The intercepting methods may return either plain
+data or a promise.
+myModule.config(function ($provide) {
+ $provide.factory(‘myHttpInterceptor’, function () {
+ return {
+ request: function (req) {
+ //logic before sending request
+ },
+ response: function (res) {
+ //logic after receiving response
+ },
+ requestError: function () {
+ //logic on request error
+ },
+ responseError: function () {
+ //logic on response error
+ }
+ };
+ });
+});
+ 
+# HTTP Transforms
+ 
+ Transforms allow us to tweak the data before sending to
+an HTTP request or after receiving response at the end of a
+request. It can be applied either globally using a config block or
+on a specific request using the $http config object.
+Setting transform in config block:
+myModule.config(function ($httpProvider) {
+ $httpProvider.defaults.transformRequest.push(function
+ (data) { //Operate on data });
+});
+In the individual request:
+$http({
+ url: ‘/api/values’,
+ method: ‘GET’,
+ transformRequest: function (data) {//Operate on data}
+});
+ 
+ 
+ 
+#  companion libraries in AngularJS
+ 
+ • AngularUI-Bootstrap (github.com/angular-ui/bootstrap)
+provides native AngularJS directives for Bootstrap (No need of
+jQuery)
+• AngularUI-Utils (github.com/angular-ui/ui-utils) contains a
+bunch of essential utilities (included with ng-boilerplate)
+• AngularUI (angular-ui.github.io/) ports off many jQueryUI
+components to Angular
+• Angular translate (angular-translate.github.io) makes it easier
+to apply internationalization to Angular projects
+• Restangular (github.com/mgonto/restangular) A clean,
+promise-based, feature rich 3rd-party library that provides some
+useful abstractions, especially for complex operations on the
+client-side.
+• AngularFire (firebase.com/docs/web/libraries/angular/): An
+abstraction to interact with Firebase realtime database
+• Breeze.js (breezejs.com): A library for rich data operations in
+AngularJS apps. Also contains directives for data validations 
+ 
+ # Thanks
+ This cheat sheet co-authored by Ravi Kiran and Suprotim Agarwal, aims at providing a quick reference to
+the most commonly used features in AngularJS. It will also make you quickly productive with Angular.
